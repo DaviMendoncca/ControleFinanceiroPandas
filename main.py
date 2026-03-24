@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+import altair as alt
 
 url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQHK2bFmd-RTAoK0YKU1KLO8hAe5MMMAjMqSN_p15zRYYwiUl-Ncvk5xaaWtof5FHW7Tqez1hADZ3gT/pub?output=csv"
 
@@ -29,12 +30,6 @@ try:
 
 
 
-    print("\n✅ DataFrame Após Limpeza e Conversão com Formato Brasileiro:")
-    saldo_mensal.index.name = 'Mês' # oculta o nome do index data
-    print(df)
-    print(f'\nSaldo Total: {saldo_total}')
-    saldo_mensal.index = saldo_mensal.index.strftime('%b').str.capitalize() # troca a data pelo nome do mês no index
-    print(saldo_mensal)
 except Exception as ex:
     print("Erro ao ler o arquivo CSV. Verifique se o arquivo 'GastosReceitas.csv' existe e está no formato correto.", ex)
 
@@ -42,12 +37,35 @@ ordem_meses = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'O
 
 
 st.title("Controle Financeiro com Pandas")
-st.text("Este é um exemplo de controle financeiro usando Pandas e Streamlit. Os dados são lidos de um arquivo CSV hospedado no Google Sheets, processados e exibidos em um formato amigável.")
+st.text("Este é um exemplo de controle financeiro usando Pandas e Streamlit." \
+" Os dados são lidos de um arquivo CSV hospedado no Google Sheets," \
+" processados e exibidos em um formato amigável.")
 
 
 st.text(f"Saldo Total: {saldo_total}")
 
+saldo_mensal = saldo_mensal.sort_index()
+saldo_mensal['Mês'] = saldo_mensal.index.strftime('%b/%y').str.capitalize()
+df_plot = saldo_mensal.reset_index()
+chart = alt.Chart(df_plot).mark_bar().encode(
+x=alt.X('Mês', sort=None), # O sort=None é o segredo
+    y='Saldo Mensal',
+    color=alt.condition(
+        alt.datum['Saldo Mensal'] > 0,
+        alt.value('steelblue'),  # Cor para valores positivos
+        alt.value('darkred')     # Cor para valores negativos
+    ),
+    tooltip=['Mês', 'Saldo Mensal']
+).properties(height=400)
+st.altair_chart(chart, use_container_width=True)
+
+saldo_mensal.index = saldo_mensal.index.strftime('%b/%y').str.capitalize() # troca a data pelo nome do mês no index
+saldo_mensal = saldo_mensal.drop('Mês', axis=1) # apaga a coluna mês do df para não ter repetição de dados
 st.dataframe(saldo_mensal)
+
+
+
+
 
 st.dataframe(df,column_config={
             "Data": st.column_config.DateColumn(
@@ -56,6 +74,8 @@ st.dataframe(df,column_config={
                 )
             },)
 
-saldo_mensal.index = pd.Categorical(saldo_mensal.index, categories=ordem_meses, ordered=True)
-saldo_mensal = saldo_mensal.sort_index()
-#st.bar_chart(saldo_mensal)
+
+
+
+
+

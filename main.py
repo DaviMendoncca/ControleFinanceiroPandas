@@ -47,14 +47,33 @@ col_esquerda, col_central_direita = st.columns([1, 2])
 
 with col_central_direita:
     st.text(f"Saldo Atual: {saldo_total}")
-
-    st.dataframe(df, width=2000,column_config={
+    df_exibicao = df.fillna('')
+    st.dataframe(df_exibicao, width=2000,column_config={
+                "Descricao": st.column_config.TextColumn(
+                    "Descrição",
+                ),
+                
                 "Data": st.column_config.DateColumn(
                     "Data",
                     format="DD/MM/YYYY",
                     )
-                },)
-    st.dataframe(saldo_mensal)
+                })
+    
+
+    meses_pt = {
+        "01": "Jan", "02": "Fev", "03": "Mar", "04": "Abr",
+        "05": "Mai", "06": "Jun", "07": "Jul", "08": "Ago",
+        "09": "Set", "10": "Out", "11": "Nov", "12": "Dez"
+    }
+
+    mensal_view = saldo_mensal.reset_index()
+    mensal_view['Mês'] = mensal_view['Data'].dt.strftime('%m').map(meses_pt) + '/' + mensal_view['Data'].dt.strftime('%y')
+    mensal_view.set_index('Mês', inplace=True)
+    st.dataframe(mensal_view, column_config={
+        'Data': None
+    })
+
+
 with col_esquerda:
     df_gastos = df[df['Valor'] < 0].copy()
     df_gastos['Valor'] = df_gastos['Valor'].abs()

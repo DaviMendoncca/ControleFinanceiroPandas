@@ -44,7 +44,7 @@ st.text("Este é um exemplo de controle financeiro usando Pandas e Streamlit." \
 " processados e exibidos em um formato amigável.")
 
 col_esquerda, col_central_direita = st.columns([1, 2])
-
+'testegi'
 with col_central_direita:
     st.text(f"Saldo Atual: {saldo_total}")
     df_exibicao = df.fillna('')
